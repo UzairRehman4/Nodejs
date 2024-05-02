@@ -1,25 +1,36 @@
 const http = require("http");
-const fs = require("fs")
-
+const fs = require("fs");
+const { URL } = require("url");
 
 const server = http.createServer((req, res) => {
-    const log = `${Date.now()}: , ${req.url} New Request Recieved\n`;
+    if (req.url === "/favicon.ico") return res.end();
+
+    const myUrl = new URL(`http://localhost:${req.url}`);
+    console.log("============ ", myUrl);
+
+    const log = `${Date.now()}: , ${req.url} New Request Received\n`;
     fs.appendFile('log.txt', log, (err, data) => {
+        switch (myUrl.pathname) {
+            case '/':
+                res.end("HomePage");
+                break;
 
-        switch (req.url) {
-            case '/': res.end("HomePage")
+            case '/about':
+                const username = myUrl.searchParams.get('myname');
+                res.end(`Hi, ${username ? username : 'Anonymous'}`);
                 break;
-            case '/about': res.end("About")
+
+            case '/search':
+                const search = myUrl.searchParams.get('search_query');
+                res.end("Here are Your results for " + search);
                 break;
+
             default:
-                res.end("404 Not Found")
+                res.end("404 Not Found");
         }
-
-
-    })
-
+    });
 });
 
 server.listen(7000, () => {
-    return console.log("server started");
-})
+    console.log("server started at http://localhost:7000/");
+});
